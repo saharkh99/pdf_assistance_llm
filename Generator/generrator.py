@@ -41,6 +41,29 @@ class RAGGenerator:
 
         ans = chain.invoke({"context":context, "question":question})
         return ans
+    
+    def generate_summary(self):
+        llm =  ChatOpenAI(temperature=0.0, model="gpt-3.5-turbo")
+        retrieved_docs = self.docs
+        # context = "\n\n".join([doc[0].page_content for doc in retrieved_docs])
+
+        ANSWER_PROMPT = ChatPromptTemplate.from_template(
+            """You are an assistant for generating summary based on the ccontent user gave you.
+
+            context: {context}
+            Answer:
+            """
+        )
+
+        chain = (
+            {"context": RunnablePassthrough()}
+            | ANSWER_PROMPT
+            | llm
+            | StrOutputParser()
+        )
+
+        ans = chain.invoke({"context":retrieved_docs})
+        return ans
 
     def save_memory(self):
         """

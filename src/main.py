@@ -7,6 +7,29 @@ from langchain_core.documents import Document
 import PyPDF2
 
 
+def generate_summary(file):
+    print(file)
+    try:
+        with open(file, 'rb') as file:
+            reader = PyPDF2.PdfReader(file)
+            num_pages = len(reader.pages)
+            content = ""
+            for page_num in range(num_pages):
+                page = reader.pages[page_num]
+                content += page.extract_text()
+            print(content)
+    except Exception as e:
+        print(f"\n\nError reading file: {str(e)}")
+    document = """
+    "If we look to the laws, they afford equal justice to all in their private differences...
+    if a man is able to serve the state, he is not hindered by the obscurity of his condition. The freedom we enjoy in our government extends also to our ordinary life.
+    There, far from exercising adistance_metric jealous surveillance over each other, we do not feel called upon to be angry with our neighbour for doing what he likes..."[15] These lines form the roots of the famous phrase "equal justice under law." The liberality of which Pericles spoke also extended to Athens' foreign policy: "We throw open our city to the world, and never by alien acts exclude foreigners from any opportunity of learning or observing, although the eyes of an enemy may occasionally profit by our liberality..."[16]
+    """
+
+    rag_generator = generrator.RAGGenerator(content, config.OPENAI_API_KEY)    
+    response = rag_generator.generate_summary()
+    print(response)
+    return response
 
 # we wanna use pinecone it's a vector database, elastic search, ranking, and graph.
 def chatbot_response(message, file, history=[]):
@@ -61,12 +84,13 @@ with gr.Blocks(theme="soft") as demo:
     file_upload = gr.File(label="Upload a document", elem_id="file_upload")
     
     btn = gr.Button("Submit")
-
+    btn2 = gr.Button("generate summary")
     with gr.Row():
         outputs = gr.Textbox(label="Generated Response", placeholder="The assistant's response will appear here...", elem_id="outputs")
 
     btn.click(chatbot_response, inputs=[txt,file_upload], outputs=[outputs])
-
+   
+    btn2.click(generate_summary, inputs=[file_upload], outputs=[outputs])
 
 if __name__ == "__main__":
     demo.launch()
