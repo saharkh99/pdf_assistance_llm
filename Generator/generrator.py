@@ -6,6 +6,8 @@ from langchain.schema.runnable import RunnablePassthrough
 from langchain.prompts import ChatPromptTemplate
 from langchain.schema.output_parser import StrOutputParser
 from langchain_openai import ChatOpenAI
+from langchain_community.utilities import GoogleSerperAPIWrapper
+
 
 class RAGGenerator:
     def __init__(self, docs, openai_api_key, memory_file='conversation_memory.json'):
@@ -17,7 +19,40 @@ class RAGGenerator:
         self.memory = ConversationBufferMemory(max_size=2000) 
         self.load_memory()
 
-    
+    def search_google(self, api_key):
+        llm =  ChatOpenAI(temperature=0.0, model="gpt-3.5-turbo")
+        ANSWER_PROMPT = ChatPromptTemplate.from_template(
+            """You are an assistant for generating title based on the content user gave you.
+
+            context: {context}
+            Answer:
+            """
+        )
+
+        chain = (
+            {"context": RunnablePassthrough()}
+            | ANSWER_PROMPT
+            | llm
+            | StrOutputParser()
+        )
+        retrieved_docs = self.docs
+        title_search = chain.invoke({"context":retrieved_docs})
+        print(title_search)
+        search = GoogleSerperAPIWrapper(serper_api_key=api_key)
+        results = search.results(title_search)
+        print(results)
+        organic_results = results.get('organic', [])
+        l = []
+        for result in organic_results:
+            title = result.get('title', 'N/A')
+            link = result.get('link', 'N/A')
+            snippet = result.get('snippet', 'N/A')
+            formatted_string = f"Title: {title}\nLink: {link}\nDescription: {snippet}\n"
+            l.append(formatted_string)
+        print(l)
+        return l
+
+
     def generate_response(self, question):
         llm =  ChatOpenAI(temperature=0.0, model="gpt-3.5-turbo")
         retrieved_docs = self.docs
@@ -48,7 +83,7 @@ class RAGGenerator:
         # context = "\n\n".join([doc[0].page_content for doc in retrieved_docs])
 
         ANSWER_PROMPT = ChatPromptTemplate.from_template(
-            """You are an assistant for generating summary based on the ccontent user gave you.
+            """You are an assistant for generating summary based on the content user gave you.
 
             context: {context}
             Answer:
@@ -83,7 +118,7 @@ class RAGGenerator:
         except (FileNotFoundError, json.JSONDecodeError):
             self.memory.clear()
 
-# if __name__ == "__main__":
+#if __name__ == "__main__":
     
     # rag_generator = RAGGenerator(index_file, docs_folder, openai_api_key)
     

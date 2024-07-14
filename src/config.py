@@ -22,4 +22,5 @@ ES_CLOUD_ID = os.getenv('es_cloud_id')
 ES_API_KEY = os.getenv('es_api_key')
 INDEX_NAME = os.getenv('index_name')
 PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
+SEP_API_KEY = os.environ.get('SEP_API_KEY')
 

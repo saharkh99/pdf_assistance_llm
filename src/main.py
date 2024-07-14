@@ -6,7 +6,31 @@ from src import  config
 from langchain_core.documents import Document
 import PyPDF2
 
+def format_string(data):
+    formatted_string = ""
+    for item in data:
+        formatted_string += item + "\n" + "-" * 80 + "\n"
+    return formatted_string
 
+def web_search(file):
+    print(file)
+    try:
+        with open(file, 'rb') as file:
+            reader = PyPDF2.PdfReader(file)
+            info = reader.metadata
+            num_pages = len(reader.pages)
+            content = ""
+            for page_num in range(num_pages):
+                page = reader.pages[page_num]
+                content += page.extract_text()
+            title = info.title
+            print(title)
+            
+    except Exception as e:
+        print(f"\n\nError reading file: {str(e)}")    
+    rag_generator = generrator.RAGGenerator(content, config.OPENAI_API_KEY)    
+    response = rag_generator.search_google(config.SEP_API_KEY)
+    return format_string(response)
 def generate_summary(file):
     print(file)
     try:
@@ -85,12 +109,16 @@ with gr.Blocks(theme="soft") as demo:
     
     btn = gr.Button("Submit")
     btn2 = gr.Button("generate summary")
+    btn3 = gr.Button("search similar articles on web")
+
     with gr.Row():
         outputs = gr.Textbox(label="Generated Response", placeholder="The assistant's response will appear here...", elem_id="outputs")
 
     btn.click(chatbot_response, inputs=[txt,file_upload], outputs=[outputs])
    
     btn2.click(generate_summary, inputs=[file_upload], outputs=[outputs])
+    
+    btn3.click(web_search, inputs=[file_upload], outputs=[outputs])
 
 if __name__ == "__main__":
     demo.launch()
