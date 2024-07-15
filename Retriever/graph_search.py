@@ -1,56 +1,55 @@
 from typing import List, Tuple
-
-from langchain.agents import AgentExecutor
-from langchain.agents.format_scratchpad import format_to_openai_function_messages
-from langchain.agents.output_parsers import OpenAIFunctionsAgentOutputParser
-from langchain_core.messages import AIMessage, HumanMessage
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.utils.function_calling import convert_to_openai_function
+from langchain.graphs import Neo4jGraph
 from langchain_openai import ChatOpenAI
-from tools import information_tools
+from langchain_core.documents import Document
+from src import config
+from langchain_experimental.graph_transformers import LLMGraphTransformer
+from langchain_openai import ChatOpenAI
+from langchain.chains import GraphCypherQAChain
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts.prompt import PromptTemplate
 
-llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
-tools = [information_tools.InformationTool()]
+def graph_response(document, question):
 
-llm_with_tools = llm.bind(functions=[convert_to_openai_function(t) for t in tools])
+    graph = Neo4jGraph(username= config.NEO4J_USERNAME, url = config.NEO4J_URI, password= config.NEO4J_PASSWORD)
+    llm = ChatOpenAI(temperature=0, model_name="gpt-4-turbo")
+    llm_transformer = LLMGraphTransformer(llm=llm)
+    documents = [Document(page_content=document)]
+    graph_documents = llm_transformer.convert_to_graph_documents(documents)
+    graph.add_graph_documents(graph_documents)
+    graph.refresh_schema()
+    print(graph.schema)
+    CYPHER_GENERATION_TEMPLATE = """Task:Generate Cypher statement to query a graph database.
+    Instructions:
+    Use only the provided relationship types and properties in the schema.
+    Do not use any other relationship types or properties that are not provided.
+    Schema:
+    {schema}
+    Note: Do not include any explanations or apologies in your responses.
+    Do not respond to any questions that might ask anything else than for you to construct a Cypher statement.
+    Do not include any text except the generated Cypher statement.
+    The question is:  
+    {question}
+    """
 
-prompt = ChatPromptTemplate.from_messages(
-    [
-        (
-            "system",
-            "You are a helpful assistant that finds information about objects and subjects in the content. "
-            "If tools require follow up questions, "
-            "Do only the things the user specifically requested. ",
-        ),
-        MessagesPlaceholder(variable_name="chat_history"),
-        ("user", "{input}"),
-        MessagesPlaceholder(variable_name="agent_scratchpad"),
-    ]
-)
+    CYPHER_GENERATION_PROMPT = PromptTemplate(
+        input_variables=["schema", "question"], template=CYPHER_GENERATION_TEMPLATE
+    )
 
+    chain = GraphCypherQAChain.from_llm(
+        ChatOpenAI(temperature=0),
+        graph=graph,
+        verbose=True,
+        cypher_prompt=CYPHER_GENERATION_PROMPT,
+    )
+    response = chain.invoke({"query": question})
+    return response
 
-def _format_chat_history(chat_history: List[Tuple[str, str]]):
-    buffer = []
-    for human, ai in chat_history:
-        buffer.append(HumanMessage(content=human))
-        buffer.append(AIMessage(content=ai))
-    return buffer
-
-
-agent = (
-    {
-        "input": lambda x: x["input"],
-        "chat_history": lambda x: _format_chat_history(x["chat_history"])
-        if x.get("chat_history")
-        else [],
-        "agent_scratchpad": lambda x: format_to_openai_function_messages(
-            x["intermediate_steps"]
-        ),
-    }
-    | prompt
-    | llm_with_tools
-    | OpenAIFunctionsAgentOutputParser()
-)
-
-agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
-# agent_executor.invoke({"input": "Who said Pericles's Funeral Oration and Gettysburg Address."})
+if __name__ == "__main__":
+    document = """
+    "If we look to the laws, they afford equal justice to all in their private differences...
+    if a man is able to serve the state, he is not hindered by the obscurity of his condition. The freedom we enjoy in our government extends also to our ordinary life.
+    There, far from exercising adistance_metric jealous surveillance over each other, we do not feel called upon to be angry with our neighbour for doing what he likes..."[15] These lines form the roots of the famous phrase "equal justice under law." The liberality of which Pericles spoke also extended to Athens' foreign policy: "We throw open our city to the world, and never by alien acts exclude foreigners from any opportunity of learning or observing, although the eyes of an enemy may occasionally profit by our liberality..."[16]
+    """
+    print(graph_response(document, "who "))
+    

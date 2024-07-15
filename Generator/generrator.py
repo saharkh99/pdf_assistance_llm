@@ -57,10 +57,10 @@ class RAGGenerator:
         llm =  ChatOpenAI(temperature=0.0, model="gpt-3.5-turbo")
         retrieved_docs = self.docs
         context = "\n\n".join([doc[0].page_content for doc in retrieved_docs])
-
+       
         ANSWER_PROMPT = ChatPromptTemplate.from_template(
             """You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Be as verbose and educational in your response as possible.
-
+        
             context: {context}
             Question: "{question}"
             Answer:
