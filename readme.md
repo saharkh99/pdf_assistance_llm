@@ -3,7 +3,7 @@
 - Indexing: elastic search, pinecone --> Ensemble
 - Pipeline: Graph Search using Neo4j if the node doesn't exist Ensemble RAG
 - Frontend: Gradio
-- Tools: Langchain
+- Tools: Langchain, OpenAI
 - 
 ## Features
 
