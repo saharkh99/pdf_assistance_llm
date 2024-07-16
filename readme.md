@@ -10,7 +10,7 @@ This project provides a tool for PDF assistance leveraging advanced Retrieval-Au
 ## Features
 
 - Question Answering: Upload PDF files and interactively query their content.
-  ! [Question-Answering.png](https://github.com/saharkh99/Speech-master/blob/master/images/photo_2024-07-16_11-04-37.jpg)
+  <a href="https://github.com/saharkh99/Speech-master/blob/master/images/photo_2024-07-16_11-04-37.jpg" class="cancel" title="question answering"><span>X</span></a>
 - Summary: Receive summaries of PDF content
   ! [Summary.png](https://github.com/saharkh99/Speech-master/blob/master/images/photo_2024-07-16_11-04-41.jpg)
 - Looking for similar articles on Web: Find relevant references within the PDF.
