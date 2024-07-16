@@ -1,8 +1,13 @@
-**Question answering system for speeches and people**
+**Question answering system for PDF Assistance*
 Chuncking: recursive splitting
 Indexing: elastic search, pinecone --> Ensemble
-Pipeline: Graph Search if the node doesn't exist Ensemble RAG
-Front: Gradio
+Pipeline: Graph Search using Neo4j if the node doesn't exist Ensemble RAG
+Frontend: Gradio
+Tools: Langchain
+
+
+
+
 
 
 
