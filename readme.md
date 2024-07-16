@@ -4,7 +4,7 @@
 - Pipeline: Graph Search using Neo4j if the node doesn't exist Ensemble RAG
 - Frontend: Gradio
 - Tools: Langchain, OpenAI
-- 
+  
 ## Features
 
 - Question Answering:
