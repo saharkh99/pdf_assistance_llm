@@ -1,9 +1,11 @@
-**Question answering system for PDF Assistance*
-- Chuncking: recursive splitting
-- Indexing: elastic search, pinecone --> Ensemble
-- Pipeline: Graph Search using Neo4j if the node doesn't exist Ensemble RAG
-- Frontend: Gradio
-- Tools: Langchain, OpenAI
+## Question Answering System for PDF Assistance
+This project provides a tool for PDF assistance leveraging advanced Retrieval-Augmented Generation (RAG) and graph-based methodologies. It enables users to upload PDF files and interactively query the content, receive summaries, and find relevant references.
+
+- **Chunking**: Recursive splitting
+- **Indexing**: ElasticSearch, Pinecone (Ensemble)
+- **Pipeline**: Graph Search using Neo4j; if the node doesn't exist, Ensemble RAG is used
+- **Frontend**: Gradio
+- **Tools**: Langchain, OpenAI
   
 ## Features
 
@@ -29,6 +31,8 @@
 
 ```bash
 python -m src.main
+
+
 
   
 
