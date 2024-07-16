@@ -5,6 +5,12 @@ from Generator import generrator
 from src import  config
 from langchain_core.documents import Document
 import PyPDF2
+import fitz  
+
+def print_non_empty_metadata(metadata):
+    for key, value in metadata.items():
+        if value:  
+            print(f"{key}: {value}")
 
 def format_string(data):
     formatted_string = ""
@@ -55,7 +61,19 @@ def generate_summary(file):
     print(response)
     return response
 
-# we wanna use pinecone it's a vector database, elastic search, ranking, and graph.
+
+def extract_pdf_info(pdf_path):
+    document = fitz.open(pdf_path)
+    metadata = document.metadata
+    num_pages = document.page_count
+    text = ""
+    for key, value in metadata.items():
+        if value:  
+            text += f" {key}: {value} \n "
+    text  = text + f"number of pages: {num_pages}"
+    return text
+
+# we wanna use pinecone it's a vector database, elastic search, ranking.
 def chatbot_response(message, file, history=[]):
     print(file)
     try:
@@ -107,6 +125,7 @@ with gr.Blocks(theme="soft") as demo:
     btn = gr.Button("Submit")
     btn2 = gr.Button("generate summary")
     btn3 = gr.Button("search similar articles on web")
+    btn4 = gr.Button("general information")
 
     with gr.Row():
         outputs = gr.Textbox(label="Generated Response", placeholder="The assistant's response will appear here...", elem_id="outputs")
@@ -116,6 +135,8 @@ with gr.Blocks(theme="soft") as demo:
     btn2.click(generate_summary, inputs=[file_upload], outputs=[outputs])
     
     btn3.click(web_search, inputs=[file_upload], outputs=[outputs])
+
+    btn4.click(extract_pdf_info, inputs=[file_upload], outputs=[outputs])
 
 if __name__ == "__main__":
     demo.launch()
