@@ -31,6 +31,7 @@ This project provides a tool for PDF assistance leveraging advanced Retrieval-Au
 
 ```bash
 python -m src.main
+```
 
 
 
